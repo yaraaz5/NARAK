@@ -17,7 +17,7 @@ if (empty($email) || empty($password) || empty($role)) {
 }
 
 if ($role === "customer") {
-    $sql = "SELECT customer_id AS id, first_name, last_name, email, password_hash
+    $sql = "SELECT customer_id AS id, first_name, last_name, email, password_hash, status
             FROM customer
             WHERE email = ?";
 } elseif ($role === "lab") {
@@ -51,6 +51,10 @@ if ($row = mysqli_fetch_assoc($result)) {
         $_SESSION["email"] = $row["email"];
 
         if ($role === "customer") {
+            if (($row["status"] ?? '') === 'blocked') {
+                header("Location: index.php?error=account_blocked");
+                exit;
+            }
             $_SESSION["full_name"] = $row["first_name"] . " " . $row["last_name"];
             header("Location: customer-dashboard.php?welcome=login");
             exit;

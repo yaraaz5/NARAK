@@ -38,6 +38,7 @@ if (isset($_GET['error'])) {
         case 'wrong_password':   $error_msg = 'كلمة المرور غير صحيحة'; break;
         case 'user_not_found':   $error_msg = 'البريد الإلكتروني غير مسجل'; break;
         case 'invalid_role':     $error_msg = 'نوع الحساب غير صحيح'; break;
+        case 'account_blocked':  $error_msg = 'هذا الحساب موقوف. '; break;
     }
 }
 ?>

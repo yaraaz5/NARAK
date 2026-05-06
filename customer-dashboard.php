@@ -13,6 +13,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'customer') {
 
 $customerId = (int) $_SESSION['user_id'];
 
+// Kick out blocked users even if they have an active session
+$stmtStatus = mysqli_prepare($conn, "SELECT status FROM customer WHERE customer_id = ? LIMIT 1");
+mysqli_stmt_bind_param($stmtStatus, 'i', $customerId);
+mysqli_stmt_execute($stmtStatus);
+$statusRow = mysqli_fetch_assoc(mysqli_stmt_get_result($stmtStatus));
+if (!$statusRow || $statusRow['status'] === 'blocked') {
+    session_destroy();
+    header("Location: index.php?error=account_blocked");
+    exit;
+}
+
 // Fetch all test results for this customer, newest first per test type
 $sql = "
     SELECT
