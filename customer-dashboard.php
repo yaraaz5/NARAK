@@ -1345,6 +1345,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             $testsLabel = $ua['tests'] ?: '—';
           ?>
           <div class="appointment-item appointment-item-actions"
+               data-id="<?= $ua['appointment_id'] ?>"
                data-lab="<?= htmlspecialchars($ua['lab_name']) ?>"
                data-tests="<?= htmlspecialchars($ua['tests'] ?? '') ?>"
                data-date="<?= htmlspecialchars($ua['slot_date']) ?>"
@@ -1761,21 +1762,22 @@ endforeach; ?>
 };
 
 function cancelAppointment(btn, appointmentId) {
-  if (!confirm('هل أنت متأكد من إلغاء هذا الموعد؟')) return;
-  fetch('cancel_appointment.php', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: 'appointment_id=' + appointmentId
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      btn.closest('.appointment-item').remove();
-    } else {
-      alert('تعذّر الإلغاء: ' + (data.message || 'خطأ غير متوقع'));
-    }
-  })
-  .catch(() => alert('حدث خطأ في الاتصال بالخادم'));
+  showConfirm('هل أنت متأكد من إلغاء هذا الموعد؟', function () {
+    fetch('cancel_appointment.php', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'appointment_id=' + appointmentId
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        btn.closest('.appointment-item').remove();
+      } else {
+        showAlert('تعذّر الإلغاء: ' + (data.message || 'خطأ غير متوقع'));
+      }
+    })
+    .catch(() => showAlert('حدث خطأ في الاتصال بالخادم'));
+  });
 }
 
 let selectedLabName = null;
@@ -1894,11 +1896,11 @@ function confirmBooking() {
     .reduce((sum, cb) => sum + Number(cb.dataset.price || 0), 0);
 
   if (checked.length < 1 || checked.length > 3) {
-    alert('اختاري من تحليل واحد إلى ثلاثة تحاليل');
+    showAlert('اختاري من تحليل واحد إلى ثلاثة تحاليل');
     return;
   }
-  if (!date) { alert('اختاري اليوم أولاً'); return; }
-  if (!time) { alert('اختاري الوقت أولاً'); return; }
+  if (!date) { showAlert('اختاري اليوم أولاً'); return; }
+  if (!time) { showAlert('اختاري الوقت أولاً'); return; }
 
   const formData = new FormData();
   formData.append('lab_name', selectedLabName);
@@ -1906,7 +1908,14 @@ function confirmBooking() {
   formData.append('time', time);
   formData.append('tests', JSON.stringify(checked));
 
-  fetch('book_appointment.php', { method: 'POST', body: formData })
+  const endpoint = editingItem
+    ? 'update_appointment.php'
+    : 'book_appointment.php';
+  if (editingItem) {
+    formData.append('appointment_id', editingItem.dataset.id);
+  }
+
+  fetch(endpoint, { method: 'POST', body: formData })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
@@ -1930,10 +1939,10 @@ function confirmBooking() {
         // Reload page after 2 seconds so new appointment appears
         setTimeout(() => location.reload(), 2000);
       } else {
-        alert('حدث خطأ: ' + (data.message || 'تعذّر الحجز'));
+        showAlert('حدث خطأ: ' + (data.message || 'تعذّر الحجز'));
       }
     })
-    .catch(() => alert('حدث خطأ في الاتصال بالخادم'));
+    .catch(() => showAlert('حدث خطأ في الاتصال بالخادم'));
 }
 let editingItem = null;
 
@@ -2079,5 +2088,6 @@ function filterLabsByTest() {
   noResults.style.display = (query !== '' && !hasMatch) ? 'block' : 'none';
 }
 </script>
+<?php include 'ui-modal.php'; ?>
 </body>
 </html>

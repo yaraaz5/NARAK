@@ -627,7 +627,7 @@ $allAppointments = mysqli_query($conn, "
                     <span><?php echo htmlspecialchars($lab["address"]); ?></span>
                     <div class="lab-tests-line"><?php echo htmlspecialchars($lab["tests"] ?: ""); ?></div>
                     <div class="lab-actions">
-                      <a class="lab-action-btn delete" href="admin-dashboard.php?delete_lab=<?php echo $lab["lab_id"]; ?>" onclick="return confirm('هل أنت متأكد من حذف المختبر؟')">حذف</a>
+                      <a class="lab-action-btn delete" href="admin-dashboard.php?delete_lab=<?php echo $lab["lab_id"]; ?>" onclick="event.preventDefault(); showConfirm('هل أنت متأكد من حذف المختبر؟', () => { window.location.href=this.href; })">حذف</a>
                     </div>
                   </div>
                 </div>
@@ -862,7 +862,7 @@ $allAppointments = mysqli_query($conn, "
   <a class="btn"
      style="background:#fce8e8;color:#c42a2a;padding:6px 14px;font-size:0.75rem;text-decoration:none;"
      href="admin-dashboard.php?block_customer=<?php echo $report["customer_id"]; ?>&report_id=<?php echo $report["report_id"]; ?>"
-     onclick="return confirm('هل أنت متأكد من حظر هذا الحساب؟')">
+     onclick="event.preventDefault(); showConfirm('هل أنت متأكد من حظر هذا الحساب؟', () => { window.location.href=this.href; })">
      حظر
   </a>
 </div>          </div>
@@ -1017,7 +1017,7 @@ function addNewTest() {
   const price = document.getElementById('newTestPrice').value.trim();
 
   if (!name || !range || !unit || !price) {
-    alert('عبّي اسم التحليل والنطاق الطبيعي والوحدة والسعر');
+    showAlert('عبّي اسم التحليل والنطاق الطبيعي والوحدة والسعر');
     return;
   }
 
@@ -1060,5 +1060,6 @@ function addNewTest() {
   document.getElementById('newTestPrice').value = "";
 }
 </script>
+<?php include 'ui-modal.php'; ?>
 </body>
 </html>

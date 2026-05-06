@@ -69,16 +69,16 @@ if (isset($_GET['error'])) {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
   }
 
   .page-wrapper {
     width: 100vw;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    padding: 24px 0;
   }
 
   /* Decorative background */
@@ -113,7 +113,6 @@ if (isset($_GET['error'])) {
     max-width: 96vw;
     min-height: 560px;
     display: flex;
-    overflow: hidden;
     position: relative;
     z-index: 1;
     animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
@@ -513,9 +512,7 @@ if (isset($_GET['error'])) {
         oninput="this.setCustomValidity('')">
     </div>
 
-    <a href="#" class="forgot">نسيت كلمة المرور؟</a>
-
-    <?php if ($active_panel === 'login' && $error_msg): ?>
+<?php if ($active_panel === 'login' && $error_msg): ?>
       <div class="error-msg"><?= htmlspecialchars($error_msg) ?></div>
     <?php endif; ?>
 

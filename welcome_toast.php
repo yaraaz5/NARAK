@@ -119,6 +119,7 @@ window.addEventListener('pageshow', function (e) {
 
 <script>
 (function () {
+  history.replaceState(null, '', window.location.pathname);
   var t = setTimeout(dismissToast, 4000);
   function dismissToast() {
     clearTimeout(t);

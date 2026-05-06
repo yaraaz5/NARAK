@@ -1062,12 +1062,12 @@ async function toggleSlot(date, time, action, btn) {
       renderCalendar();
       renderTimeSlots(date);
     } else {
-      alert(data.message || 'حدث خطأ');
+      showAlert(data.message || 'حدث خطأ');
       btn.disabled = false;
       btn.textContent = orig;
     }
   } catch (e) {
-    alert('حدث خطأ في الاتصال');
+    showAlert('حدث خطأ في الاتصال');
     btn.disabled = false;
     btn.textContent = orig;
   }
@@ -1117,6 +1117,8 @@ function selectResult(index) {
             name="result_value[]"
             placeholder="القيمة"
             required
+            oninvalid="this.setCustomValidity('الرجاء إدخال القيمة')"
+            oninput="this.setCustomValidity('')"
             style="padding:11px 14px;border:1.5px solid #e8e0d8;border-radius:10px;font-family:Tajawal,sans-serif;font-size:0.9rem;outline:none;background:#faf8f5;text-align:right;"
           >
 
@@ -1157,7 +1159,7 @@ function submitReport() {
   const customerId = document.getElementById('reportCustomerId').value;
 
   if (!type) {
-    alert('اختر نوع البلاغ أولاً');
+    showAlert('اختر نوع البلاغ أولاً');
     return;
   }
 
@@ -1184,5 +1186,6 @@ function submitReport() {
   form.submit();
 }
 </script>
+<?php include 'ui-modal.php'; ?>
 </body>
 </html>
