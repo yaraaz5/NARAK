@@ -1,78 +1,76 @@
-NARAK 
+# NARAK | Laboratory Appointment & Test Results Platform
 
-Project Overview
+**IT320 – Practical Software Engineering | King Saud University**
 
-NARAK is a web-based platform designed to connect customers with certified laboratories in Saudi Arabia. 
-The system allows users to book laboratory tests, track their appointments, and view their test results in a simple and user-friendly way.
-The platform also provides dedicated dashboards for laboratories and administrators to manage appointments, results, and user activities.
+NARAK is an academic, Arabic-first web application connecting customers with laboratories. It supports laboratory test booking, appointment management, result viewing and comparison, and role-specific dashboards for customers, laboratories, and administrators.
 
----
-Objectives
+> **Educational prototype:** Not intended for clinical use, real patient information, or production deployment. The included demo data is fictional.
 
-* Simplify the process of booking laboratory tests
-* Provide clear and understandable test results
+## Problem and solution
 
----
-System Users
-The system supports three types of users:
+Laboratory booking and follow-up may require separate processes for finding an available appointment and reviewing results. NARAK explores a single interface for customers and laboratory staff to coordinate bookings and view test information.
 
-1. Customer
+## Features
 
-* Browse available laboratories
-* Book appointments
-* View and compare test results
-* Edit or cancel appointments
+| Customer | Laboratory | Administrator |
+|---|---|---|
+| Register and sign in | Manage available time slots | Manage accounts and laboratories |
+| Browse labs and tests | Review appointments | Review laboratory-submitted reports |
+| Book, change or cancel bookings | Enter test results | Manage account restrictions |
+| View and compare results | Report customer-related issues | Monitor activity through a dashboard |
 
-2. Laboratory
+The application includes role-based session checks in server-side PHP endpoints. This does **not** mean it has been production security-audited.
 
-* View appointments
-* Enter test results
-* Manage available time slots
-* Report customers
+## Technology stack
 
-3. Admin
+- **Frontend:** HTML5, CSS3, JavaScript, RTL Arabic interface
+- **Backend:** PHP and MySQLi
+- **Database:** MySQL
+- **Development:** Git, GitHub, local PHP/MySQL server
 
-* Manage users
-* View reports submitted by labs
-* Block users when necessary
-* Manage laboratories
+## Repository guide
 
----
-Features
+| File | Purpose |
+|---|---|
+| `index.php` | Login and registration |
+| `signup_process.php`, `login_process.php` | Account creation and login |
+| `customer-dashboard.php` | Customer area |
+| `lab-dashboard.php` | Laboratory area |
+| `admin-dashboard.php` | Administration area |
+| `book_appointment.php` | Appointment creation |
+| `update_appointment.php`, `cancel_appointment.php` | Appointment changes |
+| `get_available_slots.php` | Published availability API |
+| `save_test_results.php` | Laboratory result entry |
+| `db.php` | Local database configuration |
+| `dummy_data.sql` | **Fictional demo rows only** |
 
-* Appointment booking based on available slots
-* Test selection (up to 3 tests per appointment)
-* Result comparison with visual representation
-* Edit and cancel appointments
-* Laboratory dashboard for entering results
-* Admin dashboard for managing reports and users
+## Run locally
 
----
-Technologies Used
+1. Install PHP with MySQLi and a local MySQL server (e.g., XAMPP).
+2. Create the MySQL database and its required tables using the original course schema. **The schema is not yet bundled in this repository**; `dummy_data.sql` contains inserts, not full table definitions.
+3. Configure `NARAK_DB_HOST`, `NARAK_DB_PORT`, `NARAK_DB_NAME`, `NARAK_DB_USER`, and `NARAK_DB_PASSWORD` in your *local* environment. Do not commit credentials.
+4. Import `dummy_data.sql` only into a throwaway local database after creating the tables and any required base laboratory/test records. Demo entries use fictional identities and historic dates.
+5. Run `php -S localhost:8000` from the project directory and open `http://localhost:8000/index.php`.
 
-* HTML
-* CSS
-* JavaScript
-* (Planned) PHP & MySQL for backend and database
+**Deployment note:** This is a course demonstration and has not been independently end-to-end tested. Further hardening, CSRF protection, authorization review, and concurrency testing are needed before any public deployment.
 
----
-Project Structure
+## Software engineering documentation
 
-* `index.html` → Main entry page
-* `customer-dashboard.html` → Customer interface
-* `lab-dashboard.html` → Laboratory interface
-* `admin-dashboard.html` → Admin interface
-* `images/` → Project images and assets
+The academic software engineering report can be placed at `docs/NARAK-Software-Engineering-Report.pdf` once checked for private student information and consistency with the implemented system.
 
----
-Future Improvements
+## Team
 
-* Full backend integration (PHP & MySQL)
-* Real-time slot availability
-* Notifications system
-* Mobile responsiveness improvements
+Developed collaboratively for IT320 at King Saud University by:
 
----
-License
+- Noora Alsaiari
+- Yara Zakzouk
+- Norah Al Hussain
+- Farah Alhamed
 
-This project is developed for educational purposes.
+## Future enhancements
+
+Automated integration tests, stronger security controls, richer notifications, improved responsive layouts, and production-ready database migration scripts.
+
+## Disclaimer
+
+This is a university project. It is **not** a certified healthcare provider, a validated medical-device application, or a real clinical records system.
