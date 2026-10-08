@@ -74,9 +74,9 @@ The application includes role-based session checks in server-side PHP endpoints.
 ## Run locally
 
 1. Install PHP with MySQLi and a local MySQL server (e.g., XAMPP).
-2. Create the MySQL database and its required tables using the original course schema. **The schema is not yet bundled in this repository**; `dummy_data.sql` contains inserts, not full table definitions.
+2. Import [`database/schema.sql`](database/schema.sql) into a **new empty local database** to create the tables. This sanitized schema intentionally removes the original unique constraint on `appointment.slot_id`, so a cancelled appointment's released time slot can be booked again. Do not import it into an existing database without a reviewed migration.
 3. Configure `NARAK_DB_HOST`, `NARAK_DB_PORT`, `NARAK_DB_NAME`, `NARAK_DB_USER`, and `NARAK_DB_PASSWORD` in your *local* environment. Do not commit credentials.
-4. Import `dummy_data.sql` only into a throwaway local database after creating the tables and any required base laboratory/test records. Demo entries use fictional identities and historic dates.
+4. The optional `dummy_data.sql` contains example rows, **not** the complete schema or necessarily all prerequisite laboratory/test rows. Do not import it into a real or shared database; it may not match the fresh schema without adjustment.
 5. Run `php -S localhost:8000` from the project directory and open `http://localhost:8000/index.php`.
 
 **Deployment note:** This is a course demonstration and has not been independently end-to-end tested. Further hardening, CSRF protection, authorization review, and concurrency testing are needed before any public deployment.
