@@ -1,6 +1,20 @@
-# NARAK | Laboratory Appointment & Test Results Platform
+<div align="center">
 
-**IT320 – Practical Software Engineering | King Saud University**
+<img src="images/logo.png" alt="NARAK project logo" width="155">
+
+# NARAK | نرعاك
+
+### Laboratory Booking & Test Results Management
+
+**IT320 · Practical Software Engineering · King Saud University**
+
+**PHP** · **MySQL** · **HTML** · **CSS** · **JavaScript** · **Arabic RTL**
+
+[Explore Features](#features) · [System Screens](#interface-gallery) · [Setup Guide](#run-locally) · [Team](#team)
+
+</div>
+
+---
 
 NARAK is an academic, Arabic-first web application connecting customers with laboratories. It supports laboratory test booking, appointment management, result viewing and comparison, and role-specific dashboards for customers, laboratories, and administrators.
 
@@ -9,6 +23,19 @@ NARAK is an academic, Arabic-first web application connecting customers with lab
 ## Problem and solution
 
 Laboratory booking and follow-up may require separate processes for finding an available appointment and reviewing results. NARAK explores a single interface for customers and laboratory staff to coordinate bookings and view test information.
+
+## Interface gallery
+
+> **Screenshots pending:** Actual screenshots of the running application will be added after the local PHP/MySQL setup is verified. The existing `images/` folder contains site assets, not verified screenshots of the running dashboards. We will not use fabricated UI images.
+
+| Screen | What to showcase |
+|---|---|
+| Sign-in & registration | Arabic RTL onboarding and role-based entry |
+| Customer dashboard | Laboratory discovery, booking and results |
+| Laboratory dashboard | Time slots, appointments and results entry |
+| Admin dashboard | Reports and user administration |
+
+Once captured, save them in `docs/screenshots/` and embed them here using Markdown images, e.g. `![Customer dashboard](docs/screenshots/customer-dashboard.png)`.
 
 ## Features
 
@@ -54,11 +81,18 @@ The application includes role-based session checks in server-side PHP endpoints.
 
 **Deployment note:** This is a course demonstration and has not been independently end-to-end tested. Further hardening, CSRF protection, authorization review, and concurrency testing are needed before any public deployment.
 
+## Demo and availability
+
+**Live demo:** Not available yet. GitHub Pages cannot execute PHP/MySQL, so linking directly to `index.php` on GitHub is **not** a functioning website. The project must be hosted on a PHP/MySQL-capable server or demonstrated locally. Avoid publishing real customer or medical data.
+
 ## Software engineering documentation
 
 The academic software engineering report can be placed at `docs/NARAK-Software-Engineering-Report.pdf` once checked for private student information and consistency with the implemented system.
 
-## Team
+## Team & contributions
+
+This is a **collaborative student project**. Individual responsibilities can be added when confirmed by the team.
+
 
 Developed collaboratively for IT320 at King Saud University by:
 
