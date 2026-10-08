@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'db.php';
+date_default_timezone_set('Asia/Riyadh');
 
 header('Content-Type: application/json');
 
@@ -17,17 +18,20 @@ if (!$appointmentId) {
     exit;
 }
 
+mysqli_begin_transaction($conn);
+
 // Verify the appointment belongs to this customer and is cancellable
 $stmt = mysqli_prepare($conn,
     "SELECT slot_id FROM appointment
      WHERE appointment_id = ? AND customer_id = ? AND status IN ('pending','delayed','overdue')
-     LIMIT 1"
+     LIMIT 1 FOR UPDATE"
 );
 mysqli_stmt_bind_param($stmt, 'ii', $appointmentId, $customerId);
 mysqli_stmt_execute($stmt);
 $row = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
 
 if (!$row) {
+    mysqli_rollback($conn);
     echo json_encode(['success' => false, 'message' => 'لا يمكن إلغاء هذا الموعد']);
     exit;
 }
@@ -39,14 +43,23 @@ $stmtCancel = mysqli_prepare($conn,
     "UPDATE appointment SET status = 'cancelled' WHERE appointment_id = ?"
 );
 mysqli_stmt_bind_param($stmtCancel, 'i', $appointmentId);
-mysqli_stmt_execute($stmtCancel);
+if (!mysqli_stmt_execute($stmtCancel)) {
+    mysqli_rollback($conn);
+    echo json_encode(['success' => false, 'message' => 'فشل إلغاء الموعد']);
+    exit;
+}
 
 // Free the time slot so others can book it
 $stmtSlot = mysqli_prepare($conn,
     "UPDATE time_slot SET is_available = 1 WHERE slot_id = ?"
 );
 mysqli_stmt_bind_param($stmtSlot, 'i', $slotId);
-mysqli_stmt_execute($stmtSlot);
+if (!mysqli_stmt_execute($stmtSlot)) {
+    mysqli_rollback($conn);
+    echo json_encode(['success' => false, 'message' => 'تعذر تحرير الموعد']);
+    exit;
+}
+mysqli_commit($conn);
 
 echo json_encode(['success' => true]);
 exit;
