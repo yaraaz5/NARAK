@@ -1,110 +1,77 @@
 <div align="center">
 
-<img src="images/logo.png" alt="NARAK project logo" width="155">
+<img src="images/logo.png" alt="NARAK logo" width="145">
 
 # NARAK | نرعاك
-
 ### Laboratory Booking & Test Results Management
 
-**IT320 · Practical Software Engineering · King Saud University**
+**IT320 · Software Engineering · King Saud University**
 
-**PHP** · **MySQL** · **HTML** · **CSS** · **JavaScript** · **Arabic RTL**
+PHP · MySQL · HTML · CSS · JavaScript · Arabic RTL
 
-[Explore Features](#features) · [System Screens](#interface-gallery) · [Setup Guide](#run-locally) · [Team](#team)
+[Overview](#overview) · [Features](#key-features) · [Documentation](#project-documentation) · [Team](#project-team)
 
 </div>
 
 ---
 
-NARAK is an academic, Arabic-first web application connecting customers with laboratories. It supports laboratory test booking, appointment management, result viewing and comparison, and role-specific dashboards for customers, laboratories, and administrators.
+## Overview
 
-> **Educational prototype:** Not intended for clinical use, real patient information, or production deployment. The included demo data is fictional.
+**NARAK (نرعاك)** is a university software engineering project designed to bring laboratory appointment booking and test-result follow-up into one Arabic-first web platform. It includes dedicated interfaces for customers, laboratories, and administrators.
 
-## Problem and solution
-
-Laboratory booking and follow-up may require separate processes for finding an available appointment and reviewing results. NARAK explores a single interface for customers and laboratory staff to coordinate bookings and view test information.
-
-## Interface gallery
-
-> **Screenshots pending:** Actual screenshots of the running application will be added after the local PHP/MySQL setup is verified. The existing `images/` folder contains site assets, not verified screenshots of the running dashboards. We will not use fabricated UI images.
-
-| Screen | What to showcase |
-|---|---|
-| Sign-in & registration | Arabic RTL onboarding and role-based entry |
-| Customer dashboard | Laboratory discovery, booking and results |
-| Laboratory dashboard | Time slots, appointments and results entry |
-| Admin dashboard | Reports and user administration |
-
-Once captured, save them in `docs/screenshots/` and embed them here using Markdown images, e.g. `![Customer dashboard](docs/screenshots/customer-dashboard.png)`.
-
-## Features
+## Key features
 
 | Customer | Laboratory | Administrator |
 |---|---|---|
-| Register and sign in | Manage available time slots | Manage accounts and laboratories |
-| Browse labs and tests | Review appointments | Review laboratory-submitted reports |
-| Book, change or cancel bookings | Enter test results | Manage account restrictions |
-| View and compare results | Report customer-related issues | Monitor activity through a dashboard |
+| Register and sign in | Manage appointment availability | Manage users and laboratories |
+| Explore laboratories and tests | View and update appointments | Review reports |
+| Book, edit, and cancel appointments | Enter test results | Manage user restrictions |
+| View and compare test results | Report customer-related issues | Monitor system activity |
 
-The application includes role-based session checks in server-side PHP endpoints. This does **not** mean it has been production security-audited.
+## System design
+
+The project covers requirements elicitation, user stories, Scrum planning, use-case modeling, database design, role-based interfaces, and testing. Diagrams and design details are available in the report below.
 
 ## Technology stack
 
-- **Frontend:** HTML5, CSS3, JavaScript, RTL Arabic interface
-- **Backend:** PHP and MySQLi
+- **Frontend:** HTML, CSS, JavaScript, Arabic RTL
+- **Backend:** PHP (MySQLi)
 - **Database:** MySQL
-- **Development:** Git, GitHub, local PHP/MySQL server
+- **Development:** NetBeans, Git, GitHub
 
-## Repository guide
+## Project documentation
 
-| File | Purpose |
-|---|---|
-| `index.php` | Login and registration |
-| `signup_process.php`, `login_process.php` | Account creation and login |
-| `customer-dashboard.php` | Customer area |
-| `lab-dashboard.php` | Laboratory area |
-| `admin-dashboard.php` | Administration area |
-| `book_appointment.php` | Appointment creation |
-| `update_appointment.php`, `cancel_appointment.php` | Appointment changes |
-| `get_available_slots.php` | Published availability API |
-| `save_test_results.php` | Laboratory result entry |
-| `db.php` | Local database configuration |
-| `dummy_data.sql` | **Fictional demo rows only** |
+📄 **[View the Software Engineering Report (PDF)](https://github.com/yaraaz5/NARAK/blob/fix-security-booking-readme-20261008/NARAK_Software_Engineering_Report_Public_Final.pdf)**
 
-## Run locally
+The public report includes project scope, requirements, Scrum artifacts, UML diagrams, system architecture, database design, and testing.
 
-1. Install PHP with MySQLi and a local MySQL server (e.g., XAMPP).
-2. Import [`database/schema.sql`](database/schema.sql) into a **new empty local database** to create the tables. This sanitized schema intentionally removes the original unique constraint on `appointment.slot_id`, so a cancelled appointment's released time slot can be booked again. Do not import it into an existing database without a reviewed migration.
-3. Configure `NARAK_DB_HOST`, `NARAK_DB_PORT`, `NARAK_DB_NAME`, `NARAK_DB_USER`, and `NARAK_DB_PASSWORD` in your *local* environment. Do not commit credentials.
-4. The optional `dummy_data.sql` contains example rows, **not** the complete schema or necessarily all prerequisite laboratory/test rows. Do not import it into a real or shared database; it may not match the fresh schema without adjustment.
-5. Run `php -S localhost:8000` from the project directory and open `http://localhost:8000/index.php`.
+## Interface preview
 
-**Deployment note:** This is a course demonstration and has not been independently end-to-end tested. Further hardening, CSRF protection, authorization review, and concurrency testing are needed before any public deployment.
+The interface is implemented in PHP and designed for Arabic RTL use. Screenshots of the running application are not included in this repository; refer to the report for interface designs and system diagrams.
 
-## Demo and availability
+## Project team
 
-**Live demo:** Not available yet. GitHub Pages cannot execute PHP/MySQL, so linking directly to `index.php` on GitHub is **not** a functioning website. The project must be hosted on a PHP/MySQL-capable server or demonstrated locally. Avoid publishing real customer or medical data.
+A collaborative project developed by:
 
-## Software engineering documentation
+- Noora Hussain Alsaiari
+- Yara Abdullah Zakzouk
+- Norah Nasser Al Hussain
+- Farah Ali Alhamed
 
-📄 **[Read the Software Engineering Project Report (PDF)](NARAK_Software_Engineering_Report_Public_Final.pdf)](NARAK_Software_Engineering_Report_Public_Final.pdf)** — public portfolio edition covering requirements engineering, Scrum planning, system architecture, UML diagrams, database design, implementation, and testing.
+## Repository highlights
 
-## Team & contributions
+- `index.php` — entry and authentication interface
+- `customer-dashboard.php` — customer interface
+- `lab-dashboard.php` — laboratory interface
+- `admin-dashboard.php` — administrator interface
+- `book_appointment.php` — appointment booking
+- `save_test_results.php` — results entry
+- `images/` — branding and application assets
 
-This is a **collaborative student project**. Individual responsibilities can be added when confirmed by the team.
+## Project status
 
+**Academic prototype.** This repository showcases coursework and source code; it is not a hosted public website or a production healthcare service. The application requires a configured PHP/MySQL environment to run. Do not use real patient information.
 
-Developed collaboratively for IT320 at King Saud University by:
+---
 
-- Noora Alsaiari
-- Yara Zakzouk
-- Norah Al Hussain
-- Farah Alhamed
-
-## Future enhancements
-
-Automated integration tests, stronger security controls, richer notifications, improved responsive layouts, and production-ready database migration scripts.
-
-## Disclaimer
-
-This is a university project. It is **not** a certified healthcare provider, a validated medical-device application, or a real clinical records system.
+<sub>Developed for academic purposes at King Saud University.</sub>
