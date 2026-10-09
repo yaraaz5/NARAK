@@ -87,7 +87,7 @@ The application includes role-based session checks in server-side PHP endpoints.
 
 ## Software engineering documentation
 
-The academic software engineering report can be placed at `docs/NARAK-Software-Engineering-Report.pdf` once checked for private student information and consistency with the implemented system.
+📄 **[Read the Software Engineering Project Report (PDF)](NARAK_Software_Engineering_Report_Public_Final.pdf)](NARAK_Software_Engineering_Report_Public_Final.pdf)** — public portfolio edition covering requirements engineering, Scrum planning, system architecture, UML diagrams, database design, implementation, and testing.
 
 ## Team & contributions
 
