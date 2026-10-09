@@ -1,122 +1,101 @@
 <?php
+date_default_timezone_set('Asia/Riyadh');
 session_start();
 require_once 'db.php';
-
-header('Content-Type: application/json');
-
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'customer') {
-    echo json_encode(['success' => false, 'message' => 'غير مصرح']);
+header('Content-Type: application/json; charset=utf-8');
+function reply($success, $message, $extra = [], $code = 200) {
+    http_response_code($code);
+    echo json_encode(array_merge(['success' => $success, 'message' => $message], $extra), JSON_UNESCAPED_UNICODE);
     exit;
 }
-
-$customerId    = (int) $_SESSION['user_id'];
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'customer') {
+    reply(false, 'غير مصرح', [], 403);
+}
+$customerId = (int) $_SESSION['user_id'];
 $appointmentId = (int) ($_POST['appointment_id'] ?? 0);
-$labName       = trim($_POST['lab_name'] ?? '');
-$date          = trim($_POST['date']     ?? '');
-$time          = trim($_POST['time']     ?? '');
-$testsJson     = trim($_POST['tests']    ?? '');
-
-if (!$appointmentId || !$labName || !$date || !$time || !$testsJson) {
-    echo json_encode(['success' => false, 'message' => 'بيانات ناقصة']);
-    exit;
+$labName = trim($_POST['lab_name'] ?? '');
+$date = trim($_POST['date'] ?? '');
+$time = trim($_POST['time'] ?? '');
+$tests = json_decode($_POST['tests'] ?? '', true);
+if ($appointmentId <= 0 || $labName === '' || !is_array($tests) || count($tests) < 1 || count($tests) > 3) {
+    reply(false, 'بيانات غير صحيحة', [], 422);
 }
-
-$tests = json_decode($testsJson, true);
-if (!is_array($tests) || empty($tests)) {
-    echo json_encode(['success' => false, 'message' => 'لم يتم اختيار أي تحليل']);
-    exit;
+$validDate = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+if (!$validDate || $validDate->format('Y-m-d') !== $date || $date < date('Y-m-d')) {
+    reply(false, 'التاريخ غير صحيح', [], 422);
 }
-
-// Verify this appointment belongs to the logged-in customer and is still pending
-$stmtCheck = mysqli_prepare($conn,
-    "SELECT a.appointment_id, a.slot_id FROM appointment a
-     WHERE a.appointment_id = ? AND a.customer_id = ? AND a.status = 'pending'
-     LIMIT 1"
-);
-mysqli_stmt_bind_param($stmtCheck, 'ii', $appointmentId, $customerId);
-mysqli_stmt_execute($stmtCheck);
-$apptRow = mysqli_fetch_assoc(mysqli_stmt_get_result($stmtCheck));
-
-if (!$apptRow) {
-    echo json_encode(['success' => false, 'message' => 'الموعد غير موجود أو لا يمكن تعديله']);
-    exit;
+if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', $time)) {
+    reply(false, 'الوقت غير صحيح', [], 422);
 }
-
-$oldSlotId = (int) $apptRow['slot_id'];
-
-// Get lab_id
-$stmtLab = mysqli_prepare($conn, "SELECT lab_id FROM laboratory WHERE lab_name = ? LIMIT 1");
-mysqli_stmt_bind_param($stmtLab, 's', $labName);
-mysqli_stmt_execute($stmtLab);
-$labRow = mysqli_fetch_assoc(mysqli_stmt_get_result($stmtLab));
-if (!$labRow) {
-    echo json_encode(['success' => false, 'message' => 'المختبر غير موجود']);
-    exit;
+if (strlen($time) === 5) $time .= ':00';
+$tests = array_map(fn($t) => is_string($t) ? trim($t) : '', $tests);
+if (in_array('', $tests, true) || count(array_unique($tests)) !== count($tests)) {
+    reply(false, 'التحاليل غير صحيحة', [], 422);
 }
-$labId = (int) $labRow['lab_id'];
+try {
+    mysqli_begin_transaction($conn);
+    $stmt = mysqli_prepare($conn, "SELECT slot_id FROM appointment WHERE appointment_id = ? AND customer_id = ? AND status = 'pending' LIMIT 1 FOR UPDATE");
+    mysqli_stmt_bind_param($stmt, 'ii', $appointmentId, $customerId);
+    mysqli_stmt_execute($stmt);
+    $oldAppt = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    if (!$oldAppt) throw new DomainException('لا يمكن تعديل هذا الموعد');
+    $oldSlotId = (int)$oldAppt['slot_id'];
 
-// Validate time format
-$timeParsed = $time;
-if (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $timeParsed)) {
-    echo json_encode(['success' => false, 'message' => 'صيغة الوقت غير صحيحة']);
-    exit;
-}
-if (strlen($timeParsed) === 5) $timeParsed .= ':00';
+    $labStmt = mysqli_prepare($conn, 'SELECT lab_id FROM laboratory WHERE lab_name = ? LIMIT 1');
+    mysqli_stmt_bind_param($labStmt, 's', $labName);
+    mysqli_stmt_execute($labStmt);
+    $lab = mysqli_fetch_assoc(mysqli_stmt_get_result($labStmt));
+    if (!$lab) throw new DomainException('المختبر غير موجود');
+    $labId = (int)$lab['lab_id'];
 
-// Free the old slot
-mysqli_query($conn, "UPDATE time_slot SET is_available = 1 WHERE slot_id = $oldSlotId");
-
-// Find or create the new slot
-$stmtSlot = mysqli_prepare($conn,
-    "SELECT slot_id FROM time_slot
-     WHERE lab_id = ? AND slot_date = ? AND slot_time = ? AND is_available = 1
-     LIMIT 1"
-);
-mysqli_stmt_bind_param($stmtSlot, 'iss', $labId, $date, $timeParsed);
-mysqli_stmt_execute($stmtSlot);
-$slotRow = mysqli_fetch_assoc(mysqli_stmt_get_result($stmtSlot));
-
-if ($slotRow) {
-    $newSlotId = (int) $slotRow['slot_id'];
-    mysqli_query($conn, "UPDATE time_slot SET is_available = 0 WHERE slot_id = $newSlotId");
-} else {
-    $stmtNewSlot = mysqli_prepare($conn,
-        "INSERT INTO time_slot (lab_id, slot_date, slot_time, is_available) VALUES (?, ?, ?, 0)"
-    );
-    mysqli_stmt_bind_param($stmtNewSlot, 'iss', $labId, $date, $timeParsed);
-    mysqli_stmt_execute($stmtNewSlot);
-    $newSlotId = (int) mysqli_insert_id($conn);
-}
-
-// Update the appointment's slot
-$stmtUpdate = mysqli_prepare($conn,
-    "UPDATE appointment SET slot_id = ? WHERE appointment_id = ?"
-);
-mysqli_stmt_bind_param($stmtUpdate, 'ii', $newSlotId, $appointmentId);
-mysqli_stmt_execute($stmtUpdate);
-
-// Replace tests: delete old, insert new
-mysqli_query($conn, "DELETE FROM appointment_test_type WHERE appointment_id = $appointmentId");
-
-$stmtTest = mysqli_prepare($conn,
-    "SELECT test_type_id FROM test_type WHERE test_name = ? AND lab_id = ? LIMIT 1"
-);
-$stmtLink = mysqli_prepare($conn,
-    "INSERT INTO appointment_test_type (appointment_id, test_type_id) VALUES (?, ?)"
-);
-
-foreach ($tests as $testName) {
-    $testName = trim($testName);
-    mysqli_stmt_bind_param($stmtTest, 'si', $testName, $labId);
-    mysqli_stmt_execute($stmtTest);
-    $testRow = mysqli_fetch_assoc(mysqli_stmt_get_result($stmtTest));
-    if ($testRow) {
-        $testTypeId = (int) $testRow['test_type_id'];
-        mysqli_stmt_bind_param($stmtLink, 'ii', $appointmentId, $testTypeId);
-        mysqli_stmt_execute($stmtLink);
+    $testIds = [];
+    $testStmt = mysqli_prepare($conn, 'SELECT test_type_id FROM test_type WHERE lab_id = ? AND test_name = ? LIMIT 1');
+    foreach ($tests as $test) {
+        mysqli_stmt_bind_param($testStmt, 'is', $labId, $test);
+        mysqli_stmt_execute($testStmt);
+        $row = mysqli_fetch_assoc(mysqli_stmt_get_result($testStmt));
+        if (!$row) throw new DomainException('تحليل غير متاح');
+        $testIds[] = (int)$row['test_type_id'];
     }
-}
 
-echo json_encode(['success' => true, 'appointment_id' => $appointmentId]);
-exit;
-?>
+    // First lock the target slot. Keep the original reserved unless the new one is secured.
+    $slotStmt = mysqli_prepare($conn, 'SELECT slot_id, is_available FROM time_slot WHERE lab_id = ? AND slot_date = ? AND slot_time = ? LIMIT 1 FOR UPDATE');
+    mysqli_stmt_bind_param($slotStmt, 'iss', $labId, $date, $time);
+    mysqli_stmt_execute($slotStmt);
+    $slot = mysqli_fetch_assoc(mysqli_stmt_get_result($slotStmt));
+    if (!$slot) throw new DomainException('الموعد الجديد غير متاح');
+    $newSlotId = (int)$slot['slot_id'];
+    if ($newSlotId !== $oldSlotId) {
+        if ((int)$slot['is_available'] !== 1) throw new DomainException('الموعد الجديد محجوز');
+        $reserve = mysqli_prepare($conn, 'UPDATE time_slot SET is_available = 0 WHERE slot_id = ? AND is_available = 1');
+        mysqli_stmt_bind_param($reserve, 'i', $newSlotId);
+        if (!mysqli_stmt_execute($reserve) || mysqli_stmt_affected_rows($reserve) !== 1) throw new DomainException('الموعد الجديد محجوز');
+    }
+
+    $upd = mysqli_prepare($conn, 'UPDATE appointment SET slot_id = ?, lab_id = ? WHERE appointment_id = ? AND customer_id = ?');
+    mysqli_stmt_bind_param($upd, 'iiii', $newSlotId, $labId, $appointmentId, $customerId);
+    if (!mysqli_stmt_execute($upd)) throw new RuntimeException('appointment update failed');
+
+    $delete = mysqli_prepare($conn, 'DELETE FROM appointment_test_type WHERE appointment_id = ?');
+    mysqli_stmt_bind_param($delete, 'i', $appointmentId);
+    if (!mysqli_stmt_execute($delete)) throw new RuntimeException('test replacement failed');
+    $link = mysqli_prepare($conn, 'INSERT INTO appointment_test_type (appointment_id, test_type_id) VALUES (?, ?)');
+    foreach ($testIds as $testId) {
+        mysqli_stmt_bind_param($link, 'ii', $appointmentId, $testId);
+        if (!mysqli_stmt_execute($link)) throw new RuntimeException('test replacement failed');
+    }
+    if ($newSlotId !== $oldSlotId) {
+        $free = mysqli_prepare($conn, 'UPDATE time_slot SET is_available = 1 WHERE slot_id = ?');
+        mysqli_stmt_bind_param($free, 'i', $oldSlotId);
+        if (!mysqli_stmt_execute($free)) throw new RuntimeException('old slot release failed');
+    }
+    mysqli_commit($conn);
+    reply(true, 'تم تعديل الموعد', ['appointment_id' => $appointmentId]);
+} catch (DomainException $e) {
+    mysqli_rollback($conn);
+    reply(false, $e->getMessage(), [], 409);
+} catch (Throwable $e) {
+    mysqli_rollback($conn);
+    error_log('NARAK appointment update failed: ' . $e->getMessage());
+    reply(false, 'تعذر تعديل الموعد', [], 500);
+}
